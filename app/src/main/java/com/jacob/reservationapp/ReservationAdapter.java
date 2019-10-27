@@ -6,15 +6,34 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ReservationAdapter extends RecyclerView.Adapter<ReservationAdapter.ReservationHolder> {
-
-    private List<Reservation> reservations = new ArrayList<>();
+public class ReservationAdapter extends ListAdapter<Reservation, ReservationAdapter.ReservationHolder> {
     private OnItemClickListener listener;
+
+    public ReservationAdapter() {
+        super(DIFF_CALLBACK);
+
+    }
+    private static final DiffUtil.ItemCallback<Reservation> DIFF_CALLBACK = new DiffUtil.ItemCallback<Reservation>() {
+        @Override
+        public boolean areItemsTheSame(@NonNull Reservation oldItem, @NonNull Reservation newItem) {
+            return oldItem.getId() == newItem.getId();
+        }
+
+        @Override
+        public boolean areContentsTheSame(@NonNull Reservation oldItem, @NonNull Reservation newItem) {
+            return oldItem.getPurpose().equals(newItem.getPurpose()) &&
+                    oldItem.getFromTime() == newItem.getFromTime() &&
+                    oldItem.getToTime() == newItem.getToTime() &&
+                    oldItem.getRoomId() == newItem.getRoomId();
+        }
+    };
 
     @NonNull
     @Override
@@ -26,7 +45,7 @@ public class ReservationAdapter extends RecyclerView.Adapter<ReservationAdapter.
 
     @Override
     public void onBindViewHolder(@NonNull ReservationHolder holder, int position) {
-        Reservation currentReservation = reservations.get(position);
+        Reservation currentReservation = getItem(position);
         holder.textViewRoomId.setText(String.valueOf(currentReservation.getRoomId()));
         holder.textViewPurpose.setText(currentReservation.getPurpose());
         holder.textViewFromTime.setText(String.valueOf(currentReservation.getFromTime()));
@@ -34,18 +53,8 @@ public class ReservationAdapter extends RecyclerView.Adapter<ReservationAdapter.
         holder.textViewUserId.setText(String.valueOf(currentReservation.getUserId()));
     }
 
-    @Override
-    public int getItemCount() {
-        return reservations.size();
-    }
-
-    public void setReservations(List<Reservation> reservations) {
-        this.reservations = reservations;
-        notifyDataSetChanged();
-    }
-
     public Reservation getReservationAt(int position) {
-        return reservations.get(position);
+        return getItem(position);
     }
 
     class ReservationHolder extends RecyclerView.ViewHolder {
@@ -68,7 +77,7 @@ public class ReservationAdapter extends RecyclerView.Adapter<ReservationAdapter.
                 public void onClick(View v) {
                     int position = getAdapterPosition();
                     if (listener != null && position != RecyclerView.NO_POSITION) {
-                        listener.onItemClick(reservations.get(position));
+                        listener.onItemClick(getItem(position));
                     }
                 }
             });

@@ -38,7 +38,6 @@ public class MainActivity extends AppCompatActivity {
                 startActivityForResult(intent, ADD_RESERVATION_REQUEST);
             }
         });
-
         RecyclerView recyclerView = findViewById(R.id.recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setHasFixedSize(true);
@@ -50,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
         reservationViewModel.getAllReservations().observe(this, new Observer<List<Reservation>>() {
             @Override
             public void onChanged(List<Reservation> reservations) {
-                adapter.setReservations(reservations);
+                adapter.submitList(reservations);
             }
         });
 
