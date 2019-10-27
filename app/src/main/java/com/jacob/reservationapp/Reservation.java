@@ -7,13 +7,13 @@ import androidx.room.PrimaryKey;
 public class Reservation {
     @PrimaryKey(autoGenerate = true)
     private int id;
-    private int fromTime;
-    private int toTime;
+    private long fromTime;
+    private long toTime;
     private int userId;
     private String purpose;
     private int roomId;
 
-    public Reservation(int fromTime, int toTime, int userId, String purpose, int roomId) {
+    public Reservation(long fromTime, long toTime, int userId, String purpose, int roomId) {
         this.fromTime = fromTime;
         this.toTime = toTime;
         this.userId = userId;
@@ -29,11 +29,11 @@ public class Reservation {
         return id;
     }
 
-    public int getFromTime() {
+    public long getFromTime() {
         return fromTime;
     }
 
-    public int getToTime() {
+    public long getToTime() {
         return toTime;
     }
 

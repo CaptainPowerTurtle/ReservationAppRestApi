@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="16dp"
-    tools:context=".AddReservationActivity">
+    tools:context=".AddEditReservationActivity">
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -21,9 +21,6 @@
             android:id="@+id/number_picker_userId"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
-        <TimePicker
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
     </LinearLayout>
 
     <EditText
@@ -40,11 +37,14 @@
         android:text="From Time"
         android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
 
-    <DatePicker
-        android:id="@+id/date_picker_fromTime"
-        android:layout_width="wrap_content"
+    <EditText
+        android:id="@+id/edit_text_fromTime"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:datePickerMode="calendar" />
+        android:cursorVisible="false"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
+        android:hint="Date"/>
 
     <TextView
         android:layout_width="wrap_content"
@@ -53,10 +53,13 @@
         android:text="To Time"
         android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
 
-    <DatePicker
-        android:id="@+id/date_picker_toTime"
-        android:layout_width="wrap_content"
+    <EditText
+        android:id="@+id/edit_text_toTime"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:datePickerMode="calendar" />
+        android:cursorVisible="false"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
+        android:hint="Date"/>
 
 </LinearLayout>

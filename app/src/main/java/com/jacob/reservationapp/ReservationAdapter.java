@@ -14,6 +14,8 @@ import java.util.List;
 public class ReservationAdapter extends RecyclerView.Adapter<ReservationAdapter.ReservationHolder> {
 
     private List<Reservation> reservations = new ArrayList<>();
+    private OnItemClickListener listener;
+
     @NonNull
     @Override
     public ReservationHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -37,11 +39,16 @@ public class ReservationAdapter extends RecyclerView.Adapter<ReservationAdapter.
         return reservations.size();
     }
 
-    public void setReservations(List<Reservation> reservations){
+    public void setReservations(List<Reservation> reservations) {
         this.reservations = reservations;
         notifyDataSetChanged();
     }
-    class ReservationHolder extends RecyclerView.ViewHolder{
+
+    public Reservation getReservationAt(int position) {
+        return reservations.get(position);
+    }
+
+    class ReservationHolder extends RecyclerView.ViewHolder {
         private TextView textViewRoomId;
         private TextView textViewPurpose;
         private TextView textViewFromTime;
@@ -55,6 +62,25 @@ public class ReservationAdapter extends RecyclerView.Adapter<ReservationAdapter.
             textViewFromTime = itemView.findViewById(R.id.text_view_fromTime);
             textViewToTime = itemView.findViewById(R.id.text_view_toTime);
             textViewUserId = itemView.findViewById(R.id.text_view_user_id);
+
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    int position = getAdapterPosition();
+                    if (listener != null && position != RecyclerView.NO_POSITION) {
+                        listener.onItemClick(reservations.get(position));
+                    }
+                }
+            });
         }
+    }
+
+    public interface OnItemClickListener {
+        void onItemClick(Reservation resertvation);
+    }
+
+    public void setOnItemClickListener(OnItemClickListener listener) {
+        this.listener = listener;
+
     }
 }
