@@ -1,4 +1,4 @@
-package com.jacob.reservationapp;
+package com.jacob.reservationapp.Adapter;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,8 +10,8 @@ import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.jacob.reservationapp.Database.Reservation;
+import com.jacob.reservationapp.R;
 
 public class ReservationAdapter extends ListAdapter<Reservation, ReservationAdapter.ReservationHolder> {
     private OnItemClickListener listener;

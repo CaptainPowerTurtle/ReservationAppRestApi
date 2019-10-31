@@ -1,4 +1,4 @@
-package com.jacob.reservationapp;
+package com.jacob.reservationapp.Database;
 
 import android.content.Context;
 import android.os.AsyncTask;
@@ -9,7 +9,7 @@ import androidx.room.Room;
 import androidx.room.RoomDatabase;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 
-@Database(entities = {Reservation.class}, version = 1)
+@Database(entities = {Reservation.class}, version = 2)
 public abstract class ReservationDatabase extends RoomDatabase {
 
     private static ReservationDatabase instance;
@@ -31,21 +31,21 @@ public abstract class ReservationDatabase extends RoomDatabase {
         @Override
         public void onCreate(@NonNull SupportSQLiteDatabase db) {
             super.onCreate(db);
-            new PopulateDbAsyncTask(instance).execute();
+//            new PopulateDbAsyncTask(instance).execute();
         }
     };
-    private static class PopulateDbAsyncTask extends AsyncTask<Void, Void, Void>{
-        private ReservationDao reservationDao;
-
-        private PopulateDbAsyncTask(ReservationDatabase db){
-            reservationDao = db.reservationDao();
-        }
-        @Override
-        protected Void doInBackground(Void... voids) {
-            reservationDao.insert(new Reservation( 102010, 56568675, 2, "Undervisning", 3));
-            reservationDao.insert(new Reservation( 102010, 56568675, 2, "Møde", 3));
-            reservationDao.insert(new Reservation( 102010, 56568675, 2, "Fordrag", 3));
-            return null;
-        }
-    }
+//    private static class PopulateDbAsyncTask extends AsyncTask<Void, Void, Void>{
+//        private ReservationDao reservationDao;
+//
+//        private PopulateDbAsyncTask(ReservationDatabase db){
+//            reservationDao = db.reservationDao();
+//        }
+//        @Override
+//        protected Void doInBackground(Void... voids) {
+//            reservationDao.insert(new Reservation( 102010, 56568675, "asdsgd06312", "Undervisning", 3));
+//            reservationDao.insert(new Reservation( 102010, 56568675, "asdsgd8634", "Møde", 3));
+//            reservationDao.insert(new Reservation( 102010, 56568675, "DHFGJ75838", "Fordrag", 3));
+//            return null;
+//        }
+//    }
 }

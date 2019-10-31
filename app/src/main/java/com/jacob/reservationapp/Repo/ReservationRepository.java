@@ -1,9 +1,13 @@
-package com.jacob.reservationapp;
+package com.jacob.reservationapp.Repo;
 
 import android.app.Application;
 import android.os.AsyncTask;
 
 import androidx.lifecycle.LiveData;
+
+import com.jacob.reservationapp.Database.Reservation;
+import com.jacob.reservationapp.Database.ReservationDao;
+import com.jacob.reservationapp.Database.ReservationDatabase;
 
 import java.util.List;
 

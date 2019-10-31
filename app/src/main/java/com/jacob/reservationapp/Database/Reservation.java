@@ -1,4 +1,4 @@
-package com.jacob.reservationapp;
+package com.jacob.reservationapp.Database;
 
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
@@ -9,11 +9,11 @@ public class Reservation {
     private int id;
     private long fromTime;
     private long toTime;
-    private int userId;
+    private String userId;
     private String purpose;
     private int roomId;
 
-    public Reservation(long fromTime, long toTime, int userId, String purpose, int roomId) {
+    public Reservation(long fromTime, long toTime, String userId, String purpose, int roomId) {
         this.fromTime = fromTime;
         this.toTime = toTime;
         this.userId = userId;
@@ -37,7 +37,7 @@ public class Reservation {
         return toTime;
     }
 
-    public int getUserId() {
+    public String getUserId() {
         return userId;
     }
 

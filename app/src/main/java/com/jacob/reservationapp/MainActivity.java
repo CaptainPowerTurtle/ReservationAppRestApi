@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.app.Service;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
@@ -17,13 +18,23 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.jacob.reservationapp.Adapter.ReservationAdapter;
+import com.jacob.reservationapp.Database.Reservation;
+import com.jacob.reservationapp.Retrofit.DataServiceGenerator;
+import com.jacob.reservationapp.Retrofit.JsonReservationApi;
+import com.jacob.reservationapp.Retrofit.ReservationModel;
 
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
     private ReservationViewModel reservationViewModel;
     public static final int ADD_RESERVATION_REQUEST = 1;
     public static final int EDIT_RESERVATION_REQUEST = 2;
+    List<Reservation> reservationList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onChanged(List<Reservation> reservations) {
                 adapter.submitList(reservations);
+                reservationList = reservations;
             }
         });
 
@@ -80,6 +92,7 @@ public class MainActivity extends AppCompatActivity {
                 startActivityForResult(intent, EDIT_RESERVATION_REQUEST);
             }
         });
+        fetchReservations();
     }
 
     @Override
@@ -91,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
             String purpose = data.getStringExtra(AddEditReservationActivity.EXTRA_PURPOSE);
             long fromTime = data.getLongExtra(AddEditReservationActivity.EXTRA_FROMTIME, 1);
             long toTime = data.getLongExtra(AddEditReservationActivity.EXTRA_TOTIME, 1);
-            int userId = data.getIntExtra(AddEditReservationActivity.EXTRA_USERID, 1);
+            String userId = data.getStringExtra(AddEditReservationActivity.EXTRA_USERID);
 
             Reservation reservation = new Reservation(fromTime, toTime, userId, purpose, roomId);
             reservationViewModel.insert(reservation);
@@ -108,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
             String purpose = data.getStringExtra(AddEditReservationActivity.EXTRA_PURPOSE);
             long fromTime = data.getLongExtra(AddEditReservationActivity.EXTRA_FROMTIME, 1);
             long toTime = data.getLongExtra(AddEditReservationActivity.EXTRA_TOTIME, 1);
-            int userId = data.getIntExtra(AddEditReservationActivity.EXTRA_USERID, 1);
+            String  userId = data.getStringExtra(AddEditReservationActivity.EXTRA_USERID);
 
             Reservation reservation = new Reservation(fromTime, toTime, userId, purpose, roomId);
             reservation.setId(id);
@@ -136,5 +149,37 @@ public class MainActivity extends AppCompatActivity {
                 default:
                     return super.onOptionsItemSelected(item);
         }
+    }
+    private void fetchReservations(){
+        DataServiceGenerator DataServiceGenerator = new DataServiceGenerator();
+        JsonReservationApi jsonReservationApi = DataServiceGenerator.createService(JsonReservationApi.class);
+
+        Call<List<ReservationModel>> call = jsonReservationApi.getReservations();
+
+        call.enqueue(new Callback<List<ReservationModel>>() {
+            @Override
+            public void onResponse(Call<List<ReservationModel>> call, Response<List<ReservationModel>> response) {
+                if (response.isSuccessful()){
+                    if (response != null){
+                        List<ReservationModel> reservationModelList = response.body();
+                        for (int i=0; i<reservationModelList.size(); i++){
+                            long fromTime = reservationModelList.get(i).getFromTime();
+                            long toTime = reservationModelList.get(i).getToTime();
+                            String userId = reservationModelList.get(i).getUserId();
+                            String purpose = reservationModelList.get(i).getPurpose();
+                            int roomId = reservationModelList.get(i).getRoomId();
+
+                            Reservation reservations = new Reservation(fromTime, toTime, userId, purpose, roomId);
+                            reservationViewModel.insert(reservations);
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<ReservationModel>> call, Throwable t) {
+
+            }
+        });
     }
 }

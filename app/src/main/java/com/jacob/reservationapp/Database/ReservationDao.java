@@ -1,4 +1,4 @@
-package com.jacob.reservationapp;
+package com.jacob.reservationapp.Database;
 
 import androidx.lifecycle.LiveData;
 import androidx.room.Dao;

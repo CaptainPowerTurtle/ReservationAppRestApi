@@ -6,6 +6,9 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 
+import com.jacob.reservationapp.Database.Reservation;
+import com.jacob.reservationapp.Repo.ReservationRepository;
+
 import java.util.List;
 
 public class ReservationViewModel extends AndroidViewModel {
