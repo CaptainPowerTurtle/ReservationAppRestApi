@@ -17,8 +17,14 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.jacob.reservationapp.Adapter.ReservationAdapter;
+import com.jacob.reservationapp.Auth.User;
 import com.jacob.reservationapp.Database.Reservation;
 import com.jacob.reservationapp.Retrofit.DataServiceGenerator;
 import com.jacob.reservationapp.Retrofit.JsonReservationApi;
@@ -30,8 +36,12 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class MainActivity extends AppCompatActivity {
+import static android.os.Build.USER;
+
+public class MainActivity extends AppCompatActivity implements FirebaseAuth.AuthStateListener{
     private ReservationViewModel reservationViewModel;
+    private GoogleSignInClient googleSignInClient;
+    private FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
     public static final int ADD_RESERVATION_REQUEST = 1;
     public static final int EDIT_RESERVATION_REQUEST = 2;
     List<Reservation> reservationList;
@@ -93,6 +103,11 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         fetchReservations();
+
+        User user = getUserFromIntent();
+        initGoogleSignInClient();
+//        initMessageTextView();
+//        setMessageToMessageTextView(user);
     }
 
     @Override
@@ -182,4 +197,61 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
+    private User getUserFromIntent() {
+        return (User) getIntent().getSerializableExtra(USER);
+    }
+
+    private void initGoogleSignInClient() {
+        GoogleSignInOptions googleSignInOptions = new GoogleSignInOptions
+                .Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .build();
+        googleSignInClient = GoogleSignIn.getClient(this, googleSignInOptions);
+    }
+
+    @Override
+    public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+        FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
+        if (firebaseUser == null) {
+            goToAuthInActivity();
+        }
+    }
+    @Override
+    protected void onStart() {
+        super.onStart();
+        firebaseAuth.addAuthStateListener(this);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        firebaseAuth.removeAuthStateListener(this);
+    }
+
+    private void signOut() {
+        singOutFirebase();
+        signOutGoogle();
+    }
+
+    private void goToAuthInActivity() {
+        Intent intent = new Intent(MainActivity.this, AuthActivity.class);
+        startActivity(intent);
+    }
+
+    private void singOutFirebase() {
+        firebaseAuth.signOut();
+    }
+
+    private void signOutGoogle() {
+        googleSignInClient.signOut();
+    }
+
+//    private void initMessageTextView() {
+//        messageTextView = findViewById(R.id.message_text_view);
+//    }
+//
+//    private void setMessageToMessageTextView(User user) {
+//        String message = "You are logged in as: " + user.name;
+//        messageTextView.setText(message);
+//    }
 }
