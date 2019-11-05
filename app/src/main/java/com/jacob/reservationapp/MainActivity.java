@@ -3,6 +3,7 @@ package com.jacob.reservationapp;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -29,7 +30,10 @@ import com.jacob.reservationapp.Database.Reservation;
 import com.jacob.reservationapp.Retrofit.DataServiceGenerator;
 import com.jacob.reservationapp.Retrofit.JsonReservationApi;
 import com.jacob.reservationapp.Retrofit.ReservationModel;
+import com.jacob.reservationapp.Splash.SplashActivity;
+import com.jacob.reservationapp.Utils.Constants;
 
+import java.io.Serializable;
 import java.util.List;
 
 import retrofit2.Call;
@@ -38,7 +42,9 @@ import retrofit2.Response;
 
 import static android.os.Build.USER;
 
-public class MainActivity extends AppCompatActivity implements FirebaseAuth.AuthStateListener{
+public class MainActivity extends AppCompatActivity implements FirebaseAuth.AuthStateListener, Serializable {
+    public static final String EXTRA_UID = "com.jacob.reservationapp.EXTRA_UID";
+
     private ReservationViewModel reservationViewModel;
     private GoogleSignInClient googleSignInClient;
     private FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
@@ -50,13 +56,16 @@ public class MainActivity extends AppCompatActivity implements FirebaseAuth.Auth
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        User user = getUserFromIntent();
+        initGoogleSignInClient();
 
         FloatingActionButton buttonAddReservation = findViewById(R.id.button_add_reservation);
         buttonAddReservation.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v){
-                Intent intent = new Intent(MainActivity.this, AddEditReservationActivity.class);
-                startActivityForResult(intent, ADD_RESERVATION_REQUEST);
+                //Intent intent = new Intent(MainActivity.this, AddEditReservationActivity.class);
+                goToAddEditReservationActivity(user);
+                //startActivityForResult(intent, ADD_RESERVATION_REQUEST);
             }
         });
         RecyclerView recyclerView = findViewById(R.id.recycler_view);
@@ -103,11 +112,6 @@ public class MainActivity extends AppCompatActivity implements FirebaseAuth.Auth
             }
         });
         fetchReservations();
-
-        User user = getUserFromIntent();
-        initGoogleSignInClient();
-//        initMessageTextView();
-//        setMessageToMessageTextView(user);
     }
 
     @Override
@@ -198,6 +202,7 @@ public class MainActivity extends AppCompatActivity implements FirebaseAuth.Auth
         });
     }
 
+
     private User getUserFromIntent() {
         return (User) getIntent().getSerializableExtra(USER);
     }
@@ -237,6 +242,11 @@ public class MainActivity extends AppCompatActivity implements FirebaseAuth.Auth
         Intent intent = new Intent(MainActivity.this, AuthActivity.class);
         startActivity(intent);
     }
+    private void goToAddEditReservationActivity(User user) {
+        Intent intent = new Intent(MainActivity.this, AddEditReservationActivity.class);
+        intent.putExtra(USER, user);
+        startActivityForResult(intent, ADD_RESERVATION_REQUEST);
+    }
 
     private void singOutFirebase() {
         firebaseAuth.signOut();
@@ -251,7 +261,7 @@ public class MainActivity extends AppCompatActivity implements FirebaseAuth.Auth
 //    }
 //
 //    private void setMessageToMessageTextView(User user) {
-//        String message = "You are logged in as: " + user.name;
-//        messageTextView.setText(message);
+//        Toast.makeText(this, user.name, Toast.LENGTH_SHORT).show();
 //    }
+
 }

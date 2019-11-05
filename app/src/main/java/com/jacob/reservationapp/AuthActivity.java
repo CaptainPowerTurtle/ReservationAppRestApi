@@ -34,6 +34,7 @@ public class AuthActivity extends AppCompatActivity {
         initAuthViewModel();
         initGoogleSignInClient();
     }
+
     private void initSignInButton() {
         SignInButton googleSignInButton = findViewById(R.id.google_sign_in_button);
         googleSignInButton.setOnClickListener(v -> signIn());
@@ -52,10 +53,12 @@ public class AuthActivity extends AppCompatActivity {
 
         googleSignInClient = GoogleSignIn.getClient(this, googleSignInOptions);
     }
+
     private void signIn() {
         Intent signInIntent = googleSignInClient.getSignInIntent();
         startActivityForResult(signInIntent, RC_SIGN_IN);
     }
+
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -71,11 +74,13 @@ public class AuthActivity extends AppCompatActivity {
             }
         }
     }
+
     private void getGoogleAuthCredential(GoogleSignInAccount googleSignInAccount) {
         String googleTokenId = googleSignInAccount.getIdToken();
         AuthCredential googleAuthCredential = GoogleAuthProvider.getCredential(googleTokenId, null);
         signInWithGoogleAuthCredential(googleAuthCredential);
     }
+
     private void signInWithGoogleAuthCredential(AuthCredential googleAuthCredential) {
         authViewModel.signInWithGoogle(googleAuthCredential);
         authViewModel.authenticatedUserLiveData.observe(this, authenticatedUser -> {
@@ -86,6 +91,7 @@ public class AuthActivity extends AppCompatActivity {
             }
         });
     }
+
     private void createNewUser(User authenticatedUser) {
         authViewModel.createUser(authenticatedUser);
         authViewModel.createdUserLiveData.observe(this, user -> {
@@ -95,9 +101,11 @@ public class AuthActivity extends AppCompatActivity {
             goToMainActivity(user);
         });
     }
+
     private void toastMessage(String name) {
         Toast.makeText(this, "Hi " + name + "!\n" + "Your account was successfully created.", Toast.LENGTH_LONG).show();
     }
+
     private void goToMainActivity(User user) {
         Intent intent = new Intent(AuthActivity.this, MainActivity.class);
         intent.putExtra(USER, user);
