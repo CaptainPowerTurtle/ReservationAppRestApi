@@ -5,6 +5,8 @@ import androidx.lifecycle.ViewModelProvider;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -25,6 +27,7 @@ import static com.jacob.reservationapp.Utils.HelperClass.logErrorMessage;
 public class AuthActivity extends AppCompatActivity {
     private AuthViewModel authViewModel;
     private GoogleSignInClient googleSignInClient;
+    private Button goToMainButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,6 +36,14 @@ public class AuthActivity extends AppCompatActivity {
         initSignInButton();
         initAuthViewModel();
         initGoogleSignInClient();
+
+        goToMainButton = findViewById(R.id.sign_in_no);
+        goToMainButton.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view) {
+                goToMainActivityWithNoUser();
+            }
+        });
     }
 
     private void initSignInButton() {
@@ -109,6 +120,11 @@ public class AuthActivity extends AppCompatActivity {
     private void goToMainActivity(User user) {
         Intent intent = new Intent(AuthActivity.this, MainActivity.class);
         intent.putExtra(USER, user);
+        startActivity(intent);
+        finish();
+    }
+    private void goToMainActivityWithNoUser(){
+        Intent intent = new Intent(AuthActivity.this, MainActivity.class);
         startActivity(intent);
         finish();
     }

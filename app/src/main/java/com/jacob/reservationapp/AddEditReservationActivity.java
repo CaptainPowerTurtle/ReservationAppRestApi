@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.DialogFragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.room.Room;
 
 import android.app.DatePickerDialog;
 import android.content.Intent;
@@ -13,9 +14,12 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.NumberPicker;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -25,17 +29,25 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.jacob.reservationapp.Auth.User;
+import com.jacob.reservationapp.Database.Reservation;
 import com.jacob.reservationapp.Retrofit.DataServiceGenerator;
 import com.jacob.reservationapp.Retrofit.JsonReservationApi;
 import com.jacob.reservationapp.Retrofit.ReservationModel;
+import com.jacob.reservationapp.Retrofit.RoomModel;
 import com.jacob.reservationapp.Utils.Constants;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.w3c.dom.Text;
 
 import java.text.DateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 import static android.os.Build.USER;
 
@@ -49,7 +61,6 @@ public class AddEditReservationActivity extends AppCompatActivity implements Dat
     public static final String EXTRA_USER = "com.jacob.reservationapp.EXTRA_USER";
 
     private NumberPicker numberPickerRoomId;
-    private NumberPicker numberPickerUserId;
     private EditText editTextPupose;
     private EditText editTextFromTime;
     private EditText editTextToTime;
@@ -59,6 +70,9 @@ public class AddEditReservationActivity extends AppCompatActivity implements Dat
     AuthViewModel authViewModel;
     private GoogleSignInClient googleSignInClient;
     private FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
+    private int deleteId;
+    private Button deleteButton;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,20 +82,22 @@ public class AddEditReservationActivity extends AppCompatActivity implements Dat
 
         numberPickerRoomId = findViewById(R.id.number_picker_roomId);
         editTextPupose = findViewById(R.id.edit_text_pupose);
-        numberPickerUserId = findViewById(R.id.number_picker_userId);
         editTextFromTime = findViewById(R.id.edit_text_fromTime);
         editTextToTime = findViewById(R.id.edit_text_toTime);
         textViewUid = findViewById(R.id.text_view_uid);
 
+
         numberPickerRoomId.setMinValue(1);
-        numberPickerRoomId.setMaxValue(10);
-        numberPickerUserId.setMinValue(1);
+        numberPickerRoomId.setMaxValue(5);
 
 
         getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_close);
+        deleteButton = findViewById(R.id.button_delete);
 
         initMessageTextView();
-
+        firebaseAuth.getCurrentUser();
+        String uid = firebaseAuth.getCurrentUser().getUid();
+        textViewUid.setText(uid);
         Intent intent = getIntent();
         if (intent.hasExtra(EXTRA_ID)){
             setTitle("Edit Reservation");
@@ -89,8 +105,18 @@ public class AddEditReservationActivity extends AppCompatActivity implements Dat
             numberPickerRoomId.setValue(intent.getIntExtra(EXTRA_ROOMID, 1));
             editTextFromTime.setText(intent.getStringExtra(EXTRA_FROMTIME));
             editTextToTime.setText(intent.getStringExtra(EXTRA_TOTIME));
+            deleteId = intent.getIntExtra(EXTRA_ID, 0);
+
+            deleteButton.setOnClickListener(new View.OnClickListener(){
+                @Override
+                public void onClick(View view) {
+                    deleteReservation();
+                    goToMainActivity();
+                }
+            });
         }else{
             setTitle("Add Reservation");
+            deleteButton.setVisibility(View.GONE);
             setMessageToMessageTextView(user);
         }
 
@@ -126,7 +152,7 @@ public class AddEditReservationActivity extends AppCompatActivity implements Dat
         }
     }
 
-    private void saveReservation(){
+    private void saveReservation() {
 
         int roomId = numberPickerRoomId.getValue();
         String roomPurpose = editTextPupose.getText().toString();
@@ -137,8 +163,9 @@ public class AddEditReservationActivity extends AppCompatActivity implements Dat
 //        }
 
 
-
+        Intent intent = getIntent();
         Intent data = new Intent();
+        if (intent.hasExtra(EXTRA_ID)){
         data.putExtra(EXTRA_ROOMID, roomId);
         data.putExtra(EXTRA_PURPOSE, roomPurpose);
         data.putExtra(EXTRA_FROMTIME, fromTime);
@@ -146,13 +173,15 @@ public class AddEditReservationActivity extends AppCompatActivity implements Dat
         data.putExtra(EXTRA_USERID, userId);
 
         int id = getIntent().getIntExtra(EXTRA_ID, -1);
-        if (id != -1){
+        if (id != -1) {
             data.putExtra(EXTRA_ID, id);
         }
-
-        setResult(RESULT_OK, data);
-
-        finish();
+        setResult(RESULT_OK);
+    }else{
+            postReservation();
+            setResult(RESULT_OK);
+            finish();
+        }
     }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -182,11 +211,11 @@ public class AddEditReservationActivity extends AppCompatActivity implements Dat
         if (DatePickerFragment.START_DATE == DatePickerFragment.cur){
             EditText editTextFromTime = findViewById(R.id.edit_text_fromTime);
             editTextFromTime.setText(currentDateString);
-            fromTime = c.getTimeInMillis();
+            fromTime = c.getTimeInMillis() / 1000;
         } else {
             EditText editTextToTime = findViewById(R.id.edit_text_toTime);
             editTextToTime.setText(currentDateString);
-            toTime = c.getTimeInMillis();
+            toTime = c.getTimeInMillis() / 1000;
         }
     }
     private User getUserFromIntent() {
@@ -197,7 +226,7 @@ public class AddEditReservationActivity extends AppCompatActivity implements Dat
     }
 
     private void setMessageToMessageTextView(User user) {
-        String message = "You are logged in as: " + user.name;
+        String message = "You are logged in as: " + user.uid;
         textViewUid.setText(message);
     }
     private void initGoogleSignInClient() {
@@ -221,5 +250,48 @@ public class AddEditReservationActivity extends AppCompatActivity implements Dat
     private void goToAuthInActivity() {
         Intent intent = new Intent(AddEditReservationActivity.this, AuthActivity.class);
         startActivity(intent);
+    }
+    private void postReservation(){
+        firebaseAuth.getCurrentUser();
+        DataServiceGenerator DataServiceGenerator = new DataServiceGenerator();
+        JsonReservationApi jsonReservationApi = DataServiceGenerator.createService(JsonReservationApi.class);
+        ReservationModel reservationModel = new ReservationModel(fromTime, toTime, firebaseAuth.getCurrentUser().getUid(), editTextPupose.getText().toString(), numberPickerRoomId.getValue());
+        Call<ReservationModel> call =jsonReservationApi.postReservation(reservationModel);
+        call.enqueue(new Callback<ReservationModel>() {
+            @Override
+            public void onResponse(Call<ReservationModel> call, Response<ReservationModel> response) {
+                if (response.isSuccessful()){
+                    Toast.makeText(AddEditReservationActivity.this, "Code:" + response.code(), Toast.LENGTH_SHORT).show();
+
+                    return;
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ReservationModel> call, Throwable t) {
+
+            }
+        });
+    }
+    private void deleteReservation(){
+        DataServiceGenerator DataServiceGenerator = new DataServiceGenerator();
+        JsonReservationApi jsonReservationApi = DataServiceGenerator.createService(JsonReservationApi.class);
+        Call<Void> call = jsonReservationApi.deleteReservation(deleteId);
+        call.enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+
+            }
+        });
+    }
+    private void goToMainActivity(){
+        Intent intent = new Intent(AddEditReservationActivity.this, MainActivity.class);
+        startActivity(intent);
+        finish();
     }
 }

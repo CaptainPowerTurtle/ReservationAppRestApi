@@ -5,7 +5,7 @@ import androidx.room.PrimaryKey;
 
 @Entity(tableName = "reservation_table")
 public class Reservation {
-    @PrimaryKey(autoGenerate = true)
+    @PrimaryKey
     private int id;
     private long fromTime;
     private long toTime;
@@ -13,7 +13,8 @@ public class Reservation {
     private String purpose;
     private int roomId;
 
-    public Reservation(long fromTime, long toTime, String userId, String purpose, int roomId) {
+    public Reservation(int id,long fromTime, long toTime, String userId, String purpose, int roomId) {
+        this.id = id;
         this.fromTime = fromTime;
         this.toTime = toTime;
         this.userId = userId;

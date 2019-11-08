@@ -42,7 +42,7 @@ import retrofit2.Response;
 
 import static android.os.Build.USER;
 
-public class MainActivity extends AppCompatActivity implements FirebaseAuth.AuthStateListener, Serializable {
+public class MainActivity extends AppCompatActivity implements Serializable {
     public static final String EXTRA_UID = "com.jacob.reservationapp.EXTRA_UID";
 
     private ReservationViewModel reservationViewModel;
@@ -50,6 +50,7 @@ public class MainActivity extends AppCompatActivity implements FirebaseAuth.Auth
     private FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
     public static final int ADD_RESERVATION_REQUEST = 1;
     public static final int EDIT_RESERVATION_REQUEST = 2;
+    private FirebaseUser user = firebaseAuth.getCurrentUser();
     List<Reservation> reservationList;
 
     @Override
@@ -58,16 +59,20 @@ public class MainActivity extends AppCompatActivity implements FirebaseAuth.Auth
         setContentView(R.layout.activity_main);
         User user = getUserFromIntent();
         initGoogleSignInClient();
-
+        firebaseAuth.getCurrentUser();
         FloatingActionButton buttonAddReservation = findViewById(R.id.button_add_reservation);
-        buttonAddReservation.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View v){
-                //Intent intent = new Intent(MainActivity.this, AddEditReservationActivity.class);
-                goToAddEditReservationActivity(user);
-                //startActivityForResult(intent, ADD_RESERVATION_REQUEST);
-            }
-        });
+        if (user != null) {
+            buttonAddReservation.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    //Intent intent = new Intent(MainActivity.this, AddEditReservationActivity.class);
+                    goToAddEditReservationActivity(user);
+                    //startActivityForResult(intent, ADD_RESERVATION_REQUEST);
+                }
+            });
+        }else {
+            buttonAddReservation.setVisibility(View.GONE);
+        }
         RecyclerView recyclerView = findViewById(R.id.recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setHasFixedSize(true);
@@ -93,7 +98,6 @@ public class MainActivity extends AppCompatActivity implements FirebaseAuth.Auth
             @Override
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
                 reservationViewModel.delete(adapter.getReservationAt(viewHolder.getAdapterPosition()));
-
                 Toast.makeText(MainActivity.this, "Reservation deleted", Toast.LENGTH_SHORT).show();
             }
         }).attachToRecyclerView(recyclerView);
@@ -119,14 +123,14 @@ public class MainActivity extends AppCompatActivity implements FirebaseAuth.Auth
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == ADD_RESERVATION_REQUEST && resultCode == RESULT_OK){
-            int roomId = data.getIntExtra(AddEditReservationActivity.EXTRA_ROOMID, 1);
-            String purpose = data.getStringExtra(AddEditReservationActivity.EXTRA_PURPOSE);
-            long fromTime = data.getLongExtra(AddEditReservationActivity.EXTRA_FROMTIME, 1);
-            long toTime = data.getLongExtra(AddEditReservationActivity.EXTRA_TOTIME, 1);
-            String userId = data.getStringExtra(AddEditReservationActivity.EXTRA_USERID);
-
-            Reservation reservation = new Reservation(fromTime, toTime, userId, purpose, roomId);
-            reservationViewModel.insert(reservation);
+//            int roomId = data.getIntExtra(AddEditReservationActivity.EXTRA_ROOMID, 1);
+//            String purpose = data.getStringExtra(AddEditReservationActivity.EXTRA_PURPOSE);
+//            long fromTime = data.getLongExtra(AddEditReservationActivity.EXTRA_FROMTIME, 1);
+//            long toTime = data.getLongExtra(AddEditReservationActivity.EXTRA_TOTIME, 1);
+//            String userId = data.getStringExtra(AddEditReservationActivity.EXTRA_USERID);
+//
+//            Reservation reservation = new Reservation(id, fromTime, toTime, userId, purpose, roomId);
+//            reservationViewModel.insert(reservation);
 
             Toast.makeText(this, "Reservation Saved", Toast.LENGTH_SHORT).show();
         }else if (requestCode == EDIT_RESERVATION_REQUEST && resultCode == RESULT_OK) {
@@ -135,14 +139,13 @@ public class MainActivity extends AppCompatActivity implements FirebaseAuth.Auth
                 Toast.makeText(this, "Reservation can't be updated", Toast.LENGTH_SHORT).show();
                 return;
             }
-
             int roomId = data.getIntExtra(AddEditReservationActivity.EXTRA_ROOMID, 1);
             String purpose = data.getStringExtra(AddEditReservationActivity.EXTRA_PURPOSE);
             long fromTime = data.getLongExtra(AddEditReservationActivity.EXTRA_FROMTIME, 1);
             long toTime = data.getLongExtra(AddEditReservationActivity.EXTRA_TOTIME, 1);
             String  userId = data.getStringExtra(AddEditReservationActivity.EXTRA_USERID);
 
-            Reservation reservation = new Reservation(fromTime, toTime, userId, purpose, roomId);
+            Reservation reservation = new Reservation(id ,fromTime, toTime, userId, purpose, roomId);
             reservation.setId(id);
             reservationViewModel.update(reservation);
             Toast.makeText(this, "Reservation have been updated", Toast.LENGTH_SHORT).show();
@@ -165,6 +168,8 @@ public class MainActivity extends AppCompatActivity implements FirebaseAuth.Auth
                 reservationViewModel.deleteAllReservations();
                 Toast.makeText(this, "All reservations have been deleted", Toast.LENGTH_SHORT).show();
                 return true;
+            case R.id.login:
+                goToAuthInActivity();
                 default:
                     return super.onOptionsItemSelected(item);
         }
@@ -172,36 +177,67 @@ public class MainActivity extends AppCompatActivity implements FirebaseAuth.Auth
     private void fetchReservations(){
         DataServiceGenerator DataServiceGenerator = new DataServiceGenerator();
         JsonReservationApi jsonReservationApi = DataServiceGenerator.createService(JsonReservationApi.class);
+        //String sortUid = firebaseAuth.getCurrentUser().getUid();
 
-        Call<List<ReservationModel>> call = jsonReservationApi.getReservations();
+        if (user == null) {
+            Call<List<ReservationModel>> call = jsonReservationApi.getReservations();
+            call.enqueue(new Callback<List<ReservationModel>>() {
+                @Override
+                public void onResponse(Call<List<ReservationModel>> call, Response<List<ReservationModel>> response) {
+                    if (response.isSuccessful()) {
+                        if (response != null) {
+                            List<ReservationModel> reservationModelList = response.body();
+                            for (int i = 0; i < reservationModelList.size(); i++) {
+                                int id = reservationModelList.get(i).getId();
+                                long fromTime = reservationModelList.get(i).getFromTime();
+                                long toTime = reservationModelList.get(i).getToTime();
+                                String userId = reservationModelList.get(i).getUserId();
+                                String purpose = reservationModelList.get(i).getPurpose();
+                                int roomId = reservationModelList.get(i).getRoomId();
 
-        call.enqueue(new Callback<List<ReservationModel>>() {
-            @Override
-            public void onResponse(Call<List<ReservationModel>> call, Response<List<ReservationModel>> response) {
-                if (response.isSuccessful()){
-                    if (response != null){
-                        List<ReservationModel> reservationModelList = response.body();
-                        for (int i=0; i<reservationModelList.size(); i++){
-                            long fromTime = reservationModelList.get(i).getFromTime();
-                            long toTime = reservationModelList.get(i).getToTime();
-                            String userId = reservationModelList.get(i).getUserId();
-                            String purpose = reservationModelList.get(i).getPurpose();
-                            int roomId = reservationModelList.get(i).getRoomId();
-
-                            Reservation reservations = new Reservation(fromTime, toTime, userId, purpose, roomId);
-                            reservationViewModel.insert(reservations);
+                                Reservation reservations = new Reservation(id,fromTime, toTime, userId, purpose, roomId);
+                                reservationViewModel.insert(reservations);
+                            }
                         }
                     }
                 }
-            }
 
-            @Override
-            public void onFailure(Call<List<ReservationModel>> call, Throwable t) {
+                @Override
+                public void onFailure(Call<List<ReservationModel>> call, Throwable t) {
 
-            }
-        });
+                }
+            });
+        }else{
+            Call<List<ReservationModel>> call = jsonReservationApi.getReservationByUserId(user.getUid());
+            call.enqueue(new Callback<List<ReservationModel>>() {
+                @Override
+                public void onResponse(Call<List<ReservationModel>> call, Response<List<ReservationModel>> response) {
+                    if (response.isSuccessful()) {
+                        if (response != null) {
+                            reservationViewModel.deleteAllReservations();
+                            List<ReservationModel> reservationModelList = response.body();
+                            for (int i = 0; i < reservationModelList.size(); i++) {
+                                int id = reservationModelList.get(i).getId();
+                                long fromTime = reservationModelList.get(i).getFromTime();
+                                long toTime = reservationModelList.get(i).getToTime();
+                                String userId = reservationModelList.get(i).getUserId();
+                                String purpose = reservationModelList.get(i).getPurpose();
+                                int roomId = reservationModelList.get(i).getRoomId();
+
+                                Reservation reservations = new Reservation(id, fromTime, toTime, userId, purpose, roomId);
+                                reservationViewModel.insert(reservations);
+                            }
+                        }
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<List<ReservationModel>> call, Throwable t) {
+
+                }
+            });
+        }
     }
-
 
     private User getUserFromIntent() {
         return (User) getIntent().getSerializableExtra(USER);
@@ -214,24 +250,24 @@ public class MainActivity extends AppCompatActivity implements FirebaseAuth.Auth
         googleSignInClient = GoogleSignIn.getClient(this, googleSignInOptions);
     }
 
-    @Override
-    public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-        FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
-        if (firebaseUser == null) {
-            goToAuthInActivity();
-        }
-    }
+//    @Override
+//    public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+//        FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
+//        if (firebaseUser == null) {
+//            goToAuthInActivity();
+//        }
+//    }
     @Override
     protected void onStart() {
         super.onStart();
-        firebaseAuth.addAuthStateListener(this);
+        fetchReservations();
     }
 
-    @Override
-    protected void onStop() {
-        super.onStop();
-        firebaseAuth.removeAuthStateListener(this);
-    }
+//    @Override
+//    protected void onStop() {
+//        super.onStop();
+//        firebaseAuth.removeAuthStateListener(this);
+//    }
 
     private void signOut() {
         singOutFirebase();

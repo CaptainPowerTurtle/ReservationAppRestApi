@@ -1,12 +1,33 @@
 package com.jacob.reservationapp.Retrofit;
 
+import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
+
 public class ReservationModel {
-    private int id;
+    private Integer id;
+    @SerializedName("fromTime")
+    @Expose
     private long fromTime;
+    @SerializedName("toTime")
+    @Expose
     private long toTime;
+    @SerializedName("userId")
+    @Expose
     private String userId;
+    @SerializedName("purpose")
+    @Expose
     private String purpose;
+    @SerializedName("roomId")
+    @Expose
     private int roomId;
+
+    public ReservationModel(long fromTime, long toTime, String userId, String purpose, int roomId) {
+        this.fromTime = fromTime;
+        this.toTime = toTime;
+        this.userId = userId;
+        this.purpose = purpose;
+        this.roomId = roomId;
+    }
 
     public int getId() {
         return id;
