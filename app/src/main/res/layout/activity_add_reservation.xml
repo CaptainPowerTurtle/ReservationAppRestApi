@@ -51,6 +51,14 @@
         android:focusable="false"
         android:focusableInTouchMode="false"
         android:hint="Date"/>
+    <EditText
+        android:id="@+id/edit_text_toTimeSec"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:cursorVisible="false"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
+        android:hint="Time"/>
 
     <TextView
         android:layout_width="wrap_content"
@@ -61,11 +69,19 @@
 
     <EditText
         android:id="@+id/edit_text_toTime"
-        android:layout_width="match_parent"
+        android:layout_width="100dp"
         android:layout_height="wrap_content"
         android:cursorVisible="false"
         android:focusable="false"
         android:focusableInTouchMode="false"
         android:hint="Date"/>
+    <EditText
+        android:id="@+id/edit_text_fromTimeSec"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:cursorVisible="false"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
+        android:hint="Time" />
 
 </LinearLayout>

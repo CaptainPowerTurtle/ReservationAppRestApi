@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.room.Room;
 
 import android.app.DatePickerDialog;
+import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -21,6 +22,7 @@ import android.widget.EditText;
 import android.widget.NumberPicker;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.TimePicker;
 import android.widget.Toast;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -51,7 +53,7 @@ import retrofit2.Response;
 
 import static android.os.Build.USER;
 
-public class AddEditReservationActivity extends AppCompatActivity implements DatePickerDialog.OnDateSetListener, FirebaseAuth.AuthStateListener{
+public class AddEditReservationActivity extends AppCompatActivity implements DatePickerDialog.OnDateSetListener, TimePickerDialog.OnTimeSetListener, FirebaseAuth.AuthStateListener{
     public static final String EXTRA_ID = "com.jacob.reservationapp.EXTRA_ID";
     public static final String EXTRA_ROOMID = "com.jacob.reservationapp.EXTRA_ROOMID";
     public static final String EXTRA_PURPOSE = "com.jacob.reservationapp.EXTRA_PURPOSE";
@@ -66,6 +68,8 @@ public class AddEditReservationActivity extends AppCompatActivity implements Dat
     private EditText editTextToTime;
     private long fromTime;
     private long toTime;
+    private long fromTimeSec;
+    private long toTimeSec;
     private TextView textViewUid;
     AuthViewModel authViewModel;
     private GoogleSignInClient googleSignInClient;
@@ -143,6 +147,28 @@ public class AddEditReservationActivity extends AppCompatActivity implements Dat
                 datePickerToTime.show(getSupportFragmentManager(), "date picker");
             }
         });
+        EditText editTextFromTimeSec = findViewById(R.id.edit_text_fromTimeSec);
+        editTextFromTimeSec.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Bundle bundle = new Bundle();
+                bundle.putInt("TIME", 1);
+                DialogFragment timePickerFromTime = new DatePickerFragment();
+                timePickerFromTime.setArguments(bundle);
+                timePickerFromTime.show(getSupportFragmentManager(), "time picker");
+            }
+        });
+        EditText editTextToTimeSec = findViewById(R.id.edit_text_toTimeSec);
+        editTextToTimeSec.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Bundle bundle = new Bundle();
+                bundle.putInt("TIME", 2);
+                DialogFragment timePickerToTime = new DatePickerFragment();
+                timePickerToTime.setArguments(bundle);
+                timePickerToTime.show(getSupportFragmentManager(), "time picker");
+            }
+        });
     }
     @Override
     public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
@@ -216,6 +242,22 @@ public class AddEditReservationActivity extends AppCompatActivity implements Dat
             EditText editTextToTime = findViewById(R.id.edit_text_toTime);
             editTextToTime.setText(currentDateString);
             toTime = c.getTimeInMillis() / 1000;
+        }
+    }
+    @Override
+    public void onTimeSet(TimePicker view, int hour, int minute) {
+        Calendar c = Calendar.getInstance();
+        c.set(Calendar.HOUR_OF_DAY, hour);
+        c.set(Calendar.MINUTE, minute);
+        String currentTimeString = DateFormat.getDateInstance().format(c.getTime());
+        if (TimePickerFragment.START_TIME == DatePickerFragment.cur){
+            EditText editTextFromTimeSec = findViewById(R.id.edit_text_fromTimeSec);
+            editTextFromTimeSec.setText(currentTimeString);
+            fromTimeSec = c.getTimeInMillis() / 1000;
+        } else {
+            EditText editTextToTime = findViewById(R.id.edit_text_toTime);
+            editTextToTime.setText(currentTimeString);
+            toTimeSec = c.getTimeInMillis() / 1000;
         }
     }
     private User getUserFromIntent() {
