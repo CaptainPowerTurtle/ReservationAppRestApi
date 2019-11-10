@@ -9,8 +9,10 @@ import androidx.room.Room;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.Intent;
+import android.icu.text.TimeZoneFormat;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.TimeFormatException;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -66,10 +68,12 @@ public class AddEditReservationActivity extends AppCompatActivity implements Dat
     private EditText editTextPupose;
     private EditText editTextFromTime;
     private EditText editTextToTime;
-    private long fromTime;
-    private long toTime;
+    private long fromTimeDate;
+    private long toTimeDate;
     private long fromTimeSec;
     private long toTimeSec;
+    private long fromTime;
+    private long toTime;
     private TextView textViewUid;
     AuthViewModel authViewModel;
     private GoogleSignInClient googleSignInClient;
@@ -153,7 +157,7 @@ public class AddEditReservationActivity extends AppCompatActivity implements Dat
             public void onClick(View v) {
                 Bundle bundle = new Bundle();
                 bundle.putInt("TIME", 1);
-                DialogFragment timePickerFromTime = new DatePickerFragment();
+                DialogFragment timePickerFromTime = new TimePickerFragment();
                 timePickerFromTime.setArguments(bundle);
                 timePickerFromTime.show(getSupportFragmentManager(), "time picker");
             }
@@ -164,7 +168,7 @@ public class AddEditReservationActivity extends AppCompatActivity implements Dat
             public void onClick(View v) {
                 Bundle bundle = new Bundle();
                 bundle.putInt("TIME", 2);
-                DialogFragment timePickerToTime = new DatePickerFragment();
+                DialogFragment timePickerToTime = new TimePickerFragment();
                 timePickerToTime.setArguments(bundle);
                 timePickerToTime.show(getSupportFragmentManager(), "time picker");
             }
@@ -187,7 +191,8 @@ public class AddEditReservationActivity extends AppCompatActivity implements Dat
 //            Toast.makeText(this, "From Time cannot be larger than To TIme", Toast.LENGTH_SHORT).show();
 //            return;
 //        }
-
+        fromTime = fromTimeDate + (fromTimeDate - fromTimeSec);
+        toTime = toTimeDate +(toTimeDate - toTimeSec);
 
         Intent intent = getIntent();
         Intent data = new Intent();
@@ -197,6 +202,7 @@ public class AddEditReservationActivity extends AppCompatActivity implements Dat
         data.putExtra(EXTRA_FROMTIME, fromTime);
         data.putExtra(EXTRA_TOTIME, toTime);
         data.putExtra(EXTRA_USERID, userId);
+
 
         int id = getIntent().getIntExtra(EXTRA_ID, -1);
         if (id != -1) {
@@ -237,11 +243,11 @@ public class AddEditReservationActivity extends AppCompatActivity implements Dat
         if (DatePickerFragment.START_DATE == DatePickerFragment.cur){
             EditText editTextFromTime = findViewById(R.id.edit_text_fromTime);
             editTextFromTime.setText(currentDateString);
-            fromTime = c.getTimeInMillis() / 1000;
+            fromTimeDate = c.getTimeInMillis() / 1000;
         } else {
             EditText editTextToTime = findViewById(R.id.edit_text_toTime);
             editTextToTime.setText(currentDateString);
-            toTime = c.getTimeInMillis() / 1000;
+            toTimeDate = c.getTimeInMillis() / 1000;
         }
     }
     @Override
@@ -249,13 +255,13 @@ public class AddEditReservationActivity extends AppCompatActivity implements Dat
         Calendar c = Calendar.getInstance();
         c.set(Calendar.HOUR_OF_DAY, hour);
         c.set(Calendar.MINUTE, minute);
-        String currentTimeString = DateFormat.getDateInstance().format(c.getTime());
-        if (TimePickerFragment.START_TIME == DatePickerFragment.cur){
+        String currentTimeString = DateFormat.getTimeInstance(DateFormat.SHORT).format(c.getTime());
+        if (TimePickerFragment.START_TIME == TimePickerFragment.cur){
             EditText editTextFromTimeSec = findViewById(R.id.edit_text_fromTimeSec);
             editTextFromTimeSec.setText(currentTimeString);
             fromTimeSec = c.getTimeInMillis() / 1000;
         } else {
-            EditText editTextToTime = findViewById(R.id.edit_text_toTime);
+            EditText editTextToTime = findViewById(R.id.edit_text_toTimeSec);
             editTextToTime.setText(currentTimeString);
             toTimeSec = c.getTimeInMillis() / 1000;
         }

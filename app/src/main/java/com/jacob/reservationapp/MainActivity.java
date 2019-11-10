@@ -170,6 +170,9 @@ public class MainActivity extends AppCompatActivity implements Serializable {
                 return true;
             case R.id.login:
                 goToAuthInActivity();
+            case R.id.logout:
+                signOut();
+                goToAuthInActivity();
                 default:
                     return super.onOptionsItemSelected(item);
         }

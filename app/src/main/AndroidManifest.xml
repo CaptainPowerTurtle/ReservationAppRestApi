@@ -12,6 +12,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <activity android:name=".RoomActivity"></activity>
         <activity android:name=".Splash.SplashActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -21,9 +22,8 @@
         </activity>
         <activity
             android:name=".MainActivity"
-            android:launchMode="singleTop">
-        </activity>
-        <activity android:name=".AuthActivity"></activity>
+            android:launchMode="singleTop"></activity>
+        <activity android:name=".AuthActivity" />
         <activity
             android:name=".AddEditReservationActivity"
             android:parentActivityName=".MainActivity" />
